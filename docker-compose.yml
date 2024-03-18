@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - testdb-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: node:20
+    restart: unless-stopped
+    working_dir: /app
+    depends_on:
+      - postgres
+    ports:
+      - '${PORT}:${PORT}'
+    volumes:
+      - ./:/app
+    command: bash -c "rm -rf dist/ && npm i && npm run build && npm run start:dev"
+
+volumes:
+  testdb-data:
